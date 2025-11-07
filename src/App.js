@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { getPosts } from "./api/posts";
+import PostList from "./components/postList";
 
 function App() {
   // useState es un hook de React que sirve para guardar y actualizar valores dentro de un componente funcional.
@@ -14,46 +16,28 @@ function App() {
   // useEffect es otro hook que ejecuta codigo despues de que el componente se haya renderizado.
   useEffect(() => {
     // Llamada a la API
-    fetch("https://jsonplaceholder.typicode.com/posts")
-      .then(response => response.json())
-      .then(data => {
+    async function fetchData() {
+      try {
+        const data = await getPosts();
         setPosts(data);
+      } catch (error) {
+        console.error("Error al cargar los datos:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch(error => {
-        console.error("Error al obtener los datos:", error);
-        setLoading(false);
-      });
+      }
+    }
+    fetchData();
   }, []); // [] para que se ejecute una sola vez
 
   /* 
   Antes de que lleguen los datos, el componente muestra un texto que indica que está cargando.
   Cuando loading cambia a false, React vuelve a renderizar y muestra la lista.
   */
-  if (loading) {
-    return <h2>Cargando datos...</h2>;
-  }
-
-  // se limita a mostrar 10 posts y lo recorre con map
   return (
     <div style={{ padding: "20px" }}>
       <h1>📚 Lista de Posts</h1>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {posts.slice(0, 10).map(post => (
-          <li
-            key={post.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              marginBottom: "10px",
-              padding: "10px",
-            }}
-          >
-            <h3>{post.title}</h3>
-            <p>{post.body}</p>
-          </li>
-        ))}
-      </ul>
+
+      {loading ? <p>Cargando datos...</p> : <PostList posts={posts} />}
     </div>
   );
 }
